@@ -240,7 +240,7 @@ function Edge({ edge, activeSkill, activeCategory }: {
   });
 
   return (
-    <line geometry={geometry}>
+    <lineSegments geometry={geometry}>
       <lineBasicMaterial 
         ref={matRef} 
         transparent 
@@ -248,7 +248,7 @@ function Edge({ edge, activeSkill, activeCategory }: {
         blending={THREE.AdditiveBlending}
         depthWrite={false}
       />
-    </line>
+    </lineSegments>
   );
 }
 

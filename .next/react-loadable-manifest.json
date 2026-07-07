@@ -1,0 +1,16 @@
+{
+  "components/sections/Sections.tsx -> @/components/scenes/ApiConstellationScene": {
+    "id": 5372,
+    "files": [
+      "static/chunks/372.a2fc154d35eab8e0.js"
+    ]
+  },
+  "node_modules/@react-three/drei/core/VideoTexture.js -> hls.js": {
+    "id": null,
+    "files": []
+  },
+  "node_modules/@react-three/drei/web/FaceLandmarker.js -> @mediapipe/tasks-vision": {
+    "id": null,
+    "files": []
+  }
+}
