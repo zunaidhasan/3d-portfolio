@@ -69,9 +69,16 @@ function Terminal() {
 function MouseGlow() {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    let ticking = false;
     const onMove = (e: MouseEvent) => {
-      if (ref.current) {
-        ref.current.style.background = `radial-gradient(600px circle at ${e.clientX}px ${e.clientY}px, rgba(232,146,60,0.07), transparent 70%)`;
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          if (ref.current) {
+            ref.current.style.background = `radial-gradient(600px circle at ${e.clientX}px ${e.clientY}px, rgba(232,146,60,0.07), transparent 70%)`;
+          }
+          ticking = false;
+        });
+        ticking = true;
       }
     };
     window.addEventListener("mousemove", onMove);
@@ -83,10 +90,17 @@ function MouseGlow() {
 function GridTiles() {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    let ticking = false;
     const onMove = (e: MouseEvent) => {
-      if (ref.current) {
-        ref.current.style.setProperty("--mx", `${e.clientX}px`);
-        ref.current.style.setProperty("--my", `${e.clientY}px`);
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          if (ref.current) {
+            ref.current.style.setProperty("--mx", `${e.clientX}px`);
+            ref.current.style.setProperty("--my", `${e.clientY}px`);
+          }
+          ticking = false;
+        });
+        ticking = true;
       }
     };
     window.addEventListener("mousemove", onMove);
