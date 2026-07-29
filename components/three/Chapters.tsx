@@ -135,10 +135,10 @@ export function DatabaseEngine({ progressRef, start, end }: ChapterProps) {
     }
   });
 
-  const registerMat = (m: THREE.MeshBasicMaterial | null, base: number) => {
+  const registerMat = (m: THREE.MeshBasicMaterial | THREE.LineBasicMaterial | null, base: number) => {
     if (m && !m.userData.base) {
       m.userData.base = base;
-      matsRef.current.push(m);
+      matsRef.current.push(m as any);
     }
   };
 
@@ -233,10 +233,10 @@ export function APIConstellation({ progressRef, start, end }: ChapterProps) {
     });
   });
 
-  const registerMat = (m: THREE.MeshBasicMaterial | null, base: number) => {
+  const registerMat = (m: THREE.MeshBasicMaterial | THREE.LineBasicMaterial | null, base: number) => {
     if (m && !m.userData.base) {
       m.userData.base = base;
-      matsRef.current.push(m);
+      matsRef.current.push(m as any);
     }
   };
 

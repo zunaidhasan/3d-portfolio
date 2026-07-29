@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState, useEffect } from "react";
+import React, { useMemo, useRef, useState, useEffect } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
@@ -104,7 +104,7 @@ function buildGraph() {
 }
 
 /* ====================================================================
-   3D SUBCOMPONENTS
+   3D SUBCOMPONENTS (Optimized with React.memo & refs)
 ==================================================================== */
 
 const AMBER = new THREE.Color("#E8923C");
@@ -113,14 +113,22 @@ const COOL = new THREE.Color("#B8D4E3");
 const DIM_AMBER = new THREE.Color("#3a2410");
 const DIM_COOL = new THREE.Color("#1a2733");
 
-function Node({ node, activeSkill, activeCategory, reducedMotion }: { 
-  node: GraphNode; 
-  activeSkill: string | null; 
-  activeCategory: string | null;
+interface NodeProps {
+  node: GraphNode;
+  activeSkillRef: React.MutableRefObject<string | null>;
+  activeCategoryRef: React.MutableRefObject<string | null>;
   reducedMotion: boolean;
-}) {
+}
+
+const Node = React.memo(function Node({
+  node,
+  activeSkillRef,
+  activeCategoryRef,
+  reducedMotion
+}: NodeProps) {
   const meshRef = useRef<THREE.Mesh>(null);
   const matRef = useRef<THREE.MeshBasicMaterial>(null);
+  const htmlDivRef = useRef<HTMLDivElement>(null);
   
   // Per-node random phase for idle drift
   const phase = useMemo(() => Math.random() * Math.PI * 2, []);
@@ -136,6 +144,10 @@ function Node({ node, activeSkill, activeCategory, reducedMotion }: {
     } else {
       meshRef.current.position.copy(node.basePosition);
     }
+
+    // Access stable references imperatively to completely avoid React re-renders on hover
+    const activeSkill = activeSkillRef.current;
+    const activeCategory = activeCategoryRef.current;
 
     // Interactive state logic
     const isCategoryActive = activeCategory === node.clusterId;
@@ -158,6 +170,11 @@ function Node({ node, activeSkill, activeCategory, reducedMotion }: {
 
     meshRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.1);
     matRef.current.color.lerp(targetColor, 0.1);
+
+    // Update the label's DOM opacity directly without triggering virtual DOM diffs
+    if (htmlDivRef.current) {
+      htmlDivRef.current.style.opacity = activeSkill && !activeCategory ? "0.3" : "1";
+    }
   });
 
   return (
@@ -188,23 +205,36 @@ function Node({ node, activeSkill, activeCategory, reducedMotion }: {
             letterSpacing: "0.25em",
             textTransform: "uppercase",
             color: "#8A8278",
-            whiteSpace: "nowrap",
-            opacity: activeSkill && !activeCategory ? 0.3 : 1,
-            transition: "opacity 0.3s ease-out"
+            whiteSpace: "nowrap"
           }}
         >
-          {node.name}
+          <div
+            ref={htmlDivRef}
+            style={{
+              transition: "opacity 0.3s ease-out"
+            }}
+          >
+            {node.name}
+          </div>
         </Html>
       )}
     </mesh>
   );
+}, (prev, next) => {
+  return prev.reducedMotion === next.reducedMotion && prev.node.id === next.node.id;
+});
+
+interface EdgeProps {
+  edge: GraphEdge;
+  activeSkillRef: React.MutableRefObject<string | null>;
+  activeCategoryRef: React.MutableRefObject<string | null>;
 }
 
-function Edge({ edge, activeSkill, activeCategory }: {
-  edge: GraphEdge;
-  activeSkill: string | null;
-  activeCategory: string | null;
-}) {
+const Edge = React.memo(function Edge({
+  edge,
+  activeSkillRef,
+  activeCategoryRef
+}: EdgeProps) {
   const matRef = useRef<THREE.LineBasicMaterial>(null);
   
   const geometry = useMemo(() => {
@@ -218,6 +248,10 @@ function Edge({ edge, activeSkill, activeCategory }: {
 
   useFrame(() => {
     if (!matRef.current) return;
+
+    // Access stable references imperatively to completely avoid React re-renders on hover
+    const activeSkill = activeSkillRef.current;
+    const activeCategory = activeCategoryRef.current;
     
     const isActiveEdge = 
       (edge.type === "internal" && (activeCategory === edge.a.clusterId || activeSkill === edge.b.skillName)) ||
@@ -250,7 +284,9 @@ function Edge({ edge, activeSkill, activeCategory }: {
       />
     </lineSegments>
   );
-}
+}, (prev, next) => {
+  return prev.edge.a.id === next.edge.a.id && prev.edge.b.id === next.edge.b.id;
+});
 
 function CameraRig({ reducedMotion }: { reducedMotion: boolean }) {
   const { camera } = useThree();
@@ -290,6 +326,19 @@ export function ApiConstellationScene({
 }) {
   const [reducedMotion, setReducedMotion] = useState(false);
   
+  // Store the active state in refs so 3D components can read them in useFrame.
+  // This allows us to keep Node and Edge fully memoized, resulting in ZERO React re-renders on hover!
+  const activeSkillRef = useRef<string | null>(null);
+  const activeCategoryRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    activeSkillRef.current = activeSkill;
+  }, [activeSkill]);
+
+  useEffect(() => {
+    activeCategoryRef.current = activeCategory;
+  }, [activeCategory]);
+
   useEffect(() => {
     setReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   }, []);
@@ -312,8 +361,8 @@ export function ApiConstellationScene({
         <Edge 
           key={`edge-${i}`} 
           edge={edge} 
-          activeSkill={activeSkill}
-          activeCategory={activeCategory}
+          activeSkillRef={activeSkillRef}
+          activeCategoryRef={activeCategoryRef}
         />
       ))}
 
@@ -321,8 +370,8 @@ export function ApiConstellationScene({
         <Node 
           key={node.id} 
           node={node} 
-          activeSkill={activeSkill}
-          activeCategory={activeCategory}
+          activeSkillRef={activeSkillRef}
+          activeCategoryRef={activeCategoryRef}
           reducedMotion={reducedMotion}
         />
       ))}
