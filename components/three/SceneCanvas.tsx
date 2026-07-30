@@ -36,15 +36,27 @@ export function SceneCanvas({ progressRef }: { progressRef: React.MutableRefObje
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    let raf: number;
-    const update = () => {
+
+    // Performance optimization: Instead of running an infinite requestAnimationFrame loop
+    // that repeatedly queries layout properties (scrollHeight/innerHeight) and causes layout thrashing
+    // even when the page is completely idle, we update the scroll progress on scroll and resize events.
+    // Passive event listeners are used to ensure smooth scrolling behavior.
+    const handleScroll = () => {
       const scrollable = document.documentElement.scrollHeight - window.innerHeight;
       progressRef.current =
         scrollable > 0 ? Math.min(1, Math.max(0, window.scrollY / scrollable)) : 0;
-      raf = requestAnimationFrame(update);
     };
-    update();
-    return () => cancelAnimationFrame(raf);
+
+    // Calculate initial progress
+    handleScroll();
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+    };
   }, [progressRef]);
 
   return (
