@@ -262,8 +262,8 @@ export function Projects() {
               </div>
 
               <div className="mt-8 flex items-center gap-4">
-                <a href={project.live} target="_blank" rel="noreferrer" className="text-sm font-semibold text-amber hover:text-amber-bright transition-colors">View Live →</a>
-                <a href={project.git} target="_blank" rel="noreferrer" className="text-sm font-semibold text-text-muted hover:text-text transition-colors">GitHub</a>
+                <a href={project.live} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-amber hover:text-amber-bright transition-colors">View Live →</a>
+                <a href={project.git} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-text-muted hover:text-text transition-colors">GitHub</a>
               </div>
             </TiltCard>
           ))}
@@ -426,8 +426,8 @@ export function Contact() {
                 <a href="tel:+8801960569957" className="text-xl text-text hover:text-amber transition-colors">(+880) 1960-569957</a>
               </div>
               <div className="flex gap-6 pt-4">
-                <a href="https://linkedin.com/in/zunaid-ishan" target="_blank" rel="noreferrer" className="text-text-muted hover:text-amber transition-colors font-semibold">LinkedIn</a>
-                <a href="https://github.com/zunaidhasan" target="_blank" rel="noreferrer" className="text-text-muted hover:text-amber transition-colors font-semibold">GitHub</a>
+                <a href="https://linkedin.com/in/zunaid-ishan" target="_blank" rel="noopener noreferrer" className="text-text-muted hover:text-amber transition-colors font-semibold">LinkedIn</a>
+                <a href="https://github.com/zunaidhasan" target="_blank" rel="noopener noreferrer" className="text-text-muted hover:text-amber transition-colors font-semibold">GitHub</a>
               </div>
             </div>
           </div>
