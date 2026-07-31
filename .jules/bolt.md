@@ -8,3 +8,9 @@
 **Action:**
 1. For any complex R3F interactive scene, always store hover, scroll, or input states in stable refs instead of React states/props if they are read inside `useFrame`. Use `React.memo` to freeze React-level component trees.
 2. Always wrap high-frequency DOM input/move listeners in `requestAnimationFrame` or throttle guards to prevent main thread layout bottlenecks.
+
+## 2026-03-06 - [Next.js Image Optimization with Tailored Aspect Ratio Containers]
+**Learning:**
+In Next.js, local static assets located in `/public` loaded via basic HTML `<img>` tags generate heavy unoptimized image payloads and trigger ESLint layout shift warnings (LCP bottleneck). Replacing them with Next.js's `<Image>` component using `fill` within a positioned parent container (`relative`, `absolute`, etc.) combined with Tailwind's `object-cover` style ensures both excellent responsive scaling/WebP generation and zero cumulative layout shift (CLS).
+**Action:**
+Always prioritize Next.js `<Image>` with `fill` and specified responsive `sizes` attribute for hero and profile avatars inside flexible layout divs to optimize bandwidth, eliminate LCP issues, and preserve responsive visual layouts perfectly.
