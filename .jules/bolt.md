@@ -8,3 +8,10 @@
 **Action:**
 1. For any complex R3F interactive scene, always store hover, scroll, or input states in stable refs instead of React states/props if they are read inside `useFrame`. Use `React.memo` to freeze React-level component trees.
 2. Always wrap high-frequency DOM input/move listeners in `requestAnimationFrame` or throttle guards to prevent main thread layout bottlenecks.
+
+## 2026-03-06 - [Forced Synchronous Layout inside High-Frequency Event Handlers]
+**Learning:**
+Querying layout-triggering properties (like `window.innerWidth` or `window.innerHeight`, `offsetWidth`, or `getBoundingClientRect`) inside high-frequency listeners like `mousemove` causes forced synchronous layouts (layout thrashing) if style changes are pending. This blocks the main thread and leads to severe stuttering or frame drops during fast user movements. By caching these dimensions in locally-scoped variables during initial render and only updating them on `resize` events, we completely avoid expensive layout-triggering queries on interaction.
+
+**Action:**
+Never query layout properties (window dimensions, DOM element dimensions, scroll offsets) inside high-frequency event handlers (`mousemove`, `scroll`, etc.). Cache these values on initialization and window/container `resize` events.
