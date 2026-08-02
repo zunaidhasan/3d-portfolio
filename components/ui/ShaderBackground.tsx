@@ -117,19 +117,43 @@ export function ShaderBackground() {
     const uMouse = gl.getUniformLocation(prog, "uMouse");
     const uRes = gl.getUniformLocation(prog, "uResolution");
 
+    // BOLT OPTIMIZATION: Cache window dimensions in local scope to avoid querying layout
+    // properties (window.innerWidth/innerHeight) on high-frequency mousemove events,
+    // which can trigger expensive browser reflows (forced synchronous layouts).
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+
     const resize = () => {
+      width = window.innerWidth;
+      height = window.innerHeight;
       const dpr = Math.min(window.devicePixelRatio, 1.5);
-      canvas.width = Math.floor(window.innerWidth * dpr);
-      canvas.height = Math.floor(window.innerHeight * dpr);
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
       gl.viewport(0, 0, canvas.width, canvas.height);
       gl.uniform2f(uRes, canvas.width, canvas.height);
     };
     resize();
     window.addEventListener("resize", resize);
 
+    // BOLT OPTIMIZATION: Throttle mousemove events to requestAnimationFrame (at most once per frame).
+    // This drops mouse handler invocation frequency from mouse polling rate (up to 1000Hz) to screen refresh rate (60-144Hz).
+    // By storing the latest cursor coordinates on every event, the rAF callback always renders the absolute newest position
+    // instead of a stale coordinate from the start of the animation frame.
+    let ticking = false;
+    let latestX = width / 2;
+    let latestY = height / 2;
+
     const onMouse = (e: MouseEvent) => {
-      mouseRef.current.x = e.clientX / window.innerWidth;
-      mouseRef.current.y = 1 - e.clientY / window.innerHeight;
+      latestX = e.clientX;
+      latestY = e.clientY;
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          mouseRef.current.x = latestX / (width || 1);
+          mouseRef.current.y = 1 - latestY / (height || 1);
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
     window.addEventListener("mousemove", onMouse);
 
