@@ -70,11 +70,18 @@ function MouseGlow() {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     let ticking = false;
+    let latestX = 0;
+    let latestY = 0;
+
     const onMove = (e: MouseEvent) => {
+      // Store the most recent mouse coordinates to avoid lag
+      latestX = e.clientX;
+      latestY = e.clientY;
+
       if (!ticking) {
         window.requestAnimationFrame(() => {
           if (ref.current) {
-            ref.current.style.background = `radial-gradient(600px circle at ${e.clientX}px ${e.clientY}px, rgba(232,146,60,0.07), transparent 70%)`;
+            ref.current.style.background = `radial-gradient(600px circle at ${latestX}px ${latestY}px, rgba(232,146,60,0.07), transparent 70%)`;
           }
           ticking = false;
         });
@@ -91,12 +98,19 @@ function GridTiles() {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     let ticking = false;
+    let latestX = 0;
+    let latestY = 0;
+
     const onMove = (e: MouseEvent) => {
+      // Store the most recent mouse coordinates to avoid lag
+      latestX = e.clientX;
+      latestY = e.clientY;
+
       if (!ticking) {
         window.requestAnimationFrame(() => {
           if (ref.current) {
-            ref.current.style.setProperty("--mx", `${e.clientX}px`);
-            ref.current.style.setProperty("--my", `${e.clientY}px`);
+            ref.current.style.setProperty("--mx", `${latestX}px`);
+            ref.current.style.setProperty("--my", `${latestY}px`);
           }
           ticking = false;
         });
