@@ -16,3 +16,12 @@
 
 **Action:**
 1. Always store the latest coordinates synchrony in stable local parameters (`latestX`, `latestY`) on event emission, and read those updated coordinates directly in the `requestAnimationFrame` rendering loop.
+
+## 2026-03-07 - [Idle Loop Prevention & Viewport Layout Caching]
+**Learning:**
+1. Continuous, unconditional `requestAnimationFrame` ticks (even on idle pages) waste CPU/GPU resources and trigger unnecessary main thread executions. Event-driven components (like scroll-based progress indicators) should listen to passive event triggers (`scroll`, `resize`) and schedule rendering updates via `requestAnimationFrame` only when actual state transitions occur.
+2. Accessing viewport metrics such as `window.innerWidth` and `window.innerHeight` repeatedly in high-frequency handlers (like `mousemove`) forces the browser to evaluate layout calculations, creating potential layout thrashing. Storing these dimensions on window `resize` events and referencing cached variables prevents layout thrashing.
+
+**Action:**
+1. Avoid infinite loop self-scheduling requestAnimationFrame ticks for elements that only update on event changes. Use event-driven triggers throttled with requestAnimationFrame.
+2. Cache window dimension layout properties on window `resize` rather than reading layout/viewport attributes on every high-frequency `mousemove` handler.

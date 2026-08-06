@@ -153,17 +153,33 @@ export function BottomLight({ progressRef }: { progressRef: React.MutableRefObje
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    let raf: number;
-    const tick = () => {
+    let ticking = false;
+
+    const update = () => {
       if (ref.current) {
         const p = progressRef.current;
         // Sweep from -120% to 220% across full scroll
         ref.current.style.transform = `translateX(${p * 340 - 120}%)`;
       }
-      raf = requestAnimationFrame(tick);
+      ticking = false;
     };
-    tick();
-    return () => cancelAnimationFrame(raf);
+
+    const onScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(update);
+        ticking = true;
+      }
+    };
+
+    // Initial positioning
+    update();
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
   }, [progressRef]);
 
   return (
@@ -189,17 +205,35 @@ export function BottomLight({ progressRef }: { progressRef: React.MutableRefObje
 
 function ProgressFill({ progressRef }: { progressRef: React.MutableRefObject<number> }) {
   const ref = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    let raf: number;
-    const tick = () => {
+    let ticking = false;
+
+    const update = () => {
       if (ref.current) {
         ref.current.style.transform = `scaleX(${progressRef.current})`;
       }
-      raf = requestAnimationFrame(tick);
+      ticking = false;
     };
-    tick();
-    return () => cancelAnimationFrame(raf);
+
+    const onScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(update);
+        ticking = true;
+      }
+    };
+
+    // Initial position
+    update();
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
   }, [progressRef]);
+
   return (
     <div className="h-[2px] bg-border/20">
       <div
