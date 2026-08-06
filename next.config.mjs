@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  poweredByHeader: false,
   transpilePackages: ["three"],
   images: {
     formats: ["image/avif", "image/webp"],
@@ -32,7 +33,7 @@ const nextConfig = {
           },
           {
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()"
+            value: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), midi=(), interest-cohort=()"
           },
           {
             key: "Content-Security-Policy",
