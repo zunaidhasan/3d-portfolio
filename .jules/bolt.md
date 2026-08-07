@@ -16,3 +16,11 @@
 
 **Action:**
 1. Always store the latest coordinates synchrony in stable local parameters (`latestX`, `latestY`) on event emission, and read those updated coordinates directly in the `requestAnimationFrame` rendering loop.
+
+## 2026-03-07 - [Avoiding Layout Thrashing in High-Frequency Events]
+**Learning:**
+1. Querying layout-sensitive properties like `window.innerWidth` and `window.innerHeight` inside high-frequency event handlers like `mousemove` triggers synchronous reflow/layout thrashing because the browser has to calculate layout synchronously.
+2. Caching these dimensions inside state or local variables during `resize` events and reading them from memory inside the `mousemove` event eliminates forced reflows, ensuring buttery smooth mouse interactive movements.
+
+**Action:**
+1. Cache layout properties (`window.innerWidth`, `window.innerHeight`) on load and during resize, and reference the cached values within performance-sensitive loops/event handlers.
