@@ -16,3 +16,12 @@
 
 **Action:**
 1. Always store the latest coordinates synchrony in stable local parameters (`latestX`, `latestY`) on event emission, and read those updated coordinates directly in the `requestAnimationFrame` rendering loop.
+
+## 2026-03-07 - [Preventing Layout Thrashing inside High-Frequency Event Handlers]
+**Learning:**
+1. Querying viewport dimensions (such as `window.innerWidth` and `window.innerHeight`) inside high-frequency handlers (like `mousemove` listeners) triggers browser layout/reflow calculations on every event fire (which can happen hundreds of times per second). This leads to severe layout thrashing and slows down page performance.
+2. Instead, these layout-triggering properties should be queried once upon initialization and updated inside a low-frequency listener (like the `resize` event). The event handler can then read cached viewport values with near-zero overhead.
+
+**Action:**
+1. Avoid accessing properties that require recalculation of geometry (like `innerWidth`, `innerHeight`, `getBoundingClientRect()`, or `offset*` properties) directly inside dynamic, high-frequency interaction event handlers.
+2. Always cache layout dimensions in local scope/ref variables, updating them only during `resize` or initial mount.
