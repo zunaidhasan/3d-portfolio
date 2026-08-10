@@ -117,10 +117,15 @@ export function ShaderBackground() {
     const uMouse = gl.getUniformLocation(prog, "uMouse");
     const uRes = gl.getUniformLocation(prog, "uResolution");
 
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+
     const resize = () => {
+      width = window.innerWidth;
+      height = window.innerHeight;
       const dpr = Math.min(window.devicePixelRatio, 1.5);
-      canvas.width = Math.floor(window.innerWidth * dpr);
-      canvas.height = Math.floor(window.innerHeight * dpr);
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
       gl.viewport(0, 0, canvas.width, canvas.height);
       gl.uniform2f(uRes, canvas.width, canvas.height);
     };
@@ -128,8 +133,9 @@ export function ShaderBackground() {
     window.addEventListener("resize", resize);
 
     const onMouse = (e: MouseEvent) => {
-      mouseRef.current.x = e.clientX / window.innerWidth;
-      mouseRef.current.y = 1 - e.clientY / window.innerHeight;
+      // Avoid layout thrashing by reading cached dimensions instead of querying window innerWidth/innerHeight on every high-frequency event
+      mouseRef.current.x = e.clientX / (width || 1);
+      mouseRef.current.y = 1 - e.clientY / (height || 1);
     };
     window.addEventListener("mousemove", onMouse);
 
