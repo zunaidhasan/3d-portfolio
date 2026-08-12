@@ -16,3 +16,12 @@
 
 **Action:**
 1. Always store the latest coordinates synchrony in stable local parameters (`latestX`, `latestY`) on event emission, and read those updated coordinates directly in the `requestAnimationFrame` rendering loop.
+
+## 2026-03-07 - [Preventing Layout Thrashing via Viewport Caching]
+**Learning:**
+1. Querying layout properties such as `window.innerWidth`, `window.innerHeight`, `element.clientWidth`, or `element.offsetHeight` inside a high-frequency input event handler (like `mousemove`, `touchmove`, or `scroll`) forces the browser to synchronously recalculate the style and layout tree (known as forced synchronous layout / layout thrashing). This blocks the JavaScript execution thread and delays screen paint updates.
+2. Caching these viewport dimensions during low-frequency handlers (e.g., inside a `resize` listener) and reading from the cached local variables in the high-frequency interaction callback completely avoids triggering expensive layout queries, maximizing FPS.
+
+**Action:**
+1. Never query `window.innerWidth`/`window.innerHeight` or offset sizes in `mousemove`/`scroll`/`touchmove` callbacks.
+2. Cache dimensions in local variables or React refs during `resize` and reference those pre-calculated values instead.
