@@ -16,3 +16,11 @@
 
 **Action:**
 1. Always store the latest coordinates synchrony in stable local parameters (`latestX`, `latestY`) on event emission, and read those updated coordinates directly in the `requestAnimationFrame` rendering loop.
+
+## 2026-03-07 - [Caching Viewport Dimensions to Prevent Layout Thrashing]
+**Learning:**
+1. Querying DOM properties like `window.innerWidth` or `window.innerHeight` inside high-frequency interaction events (such as `mousemove`) forces the browser to synchronously recalculate styles and layout (layout thrashing), causing unnecessary performance bottlenecks on every move.
+2. Caching these dimensions in stable local variables during `resize` events and referencing the cached variables in high-frequency handlers eliminates global DOM reads on every interaction.
+
+**Action:**
+1. Always cache viewport dimensions (`innerWidth`/`innerHeight`) on `resize` events and reference cached local variables in mousemove, scroll, or other high-frequency interaction listeners.
