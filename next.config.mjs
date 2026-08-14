@@ -37,6 +37,18 @@ const nextConfig = {
           {
             key: "Content-Security-Policy",
             value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; frame-ancestors 'none';"
+          },
+          {
+            key: "X-XSS-Protection",
+            value: "1; mode=block"
+          },
+          {
+            key: "X-Permitted-Cross-Domain-Policies",
+            value: "none"
+          },
+          {
+            key: "Cross-Origin-Opener-Policy",
+            value: "same-origin"
           }
         ]
       }
