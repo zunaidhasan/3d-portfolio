@@ -117,21 +117,29 @@ export function ShaderBackground() {
     const uMouse = gl.getUniformLocation(prog, "uMouse");
     const uRes = gl.getUniformLocation(prog, "uResolution");
 
+    let viewWidth = window.innerWidth;
+    let viewHeight = window.innerHeight;
+
     const resize = () => {
+      viewWidth = window.innerWidth;
+      viewHeight = window.innerHeight;
       const dpr = Math.min(window.devicePixelRatio, 1.5);
-      canvas.width = Math.floor(window.innerWidth * dpr);
-      canvas.height = Math.floor(window.innerHeight * dpr);
+      canvas.width = Math.floor(viewWidth * dpr);
+      canvas.height = Math.floor(viewHeight * dpr);
       gl.viewport(0, 0, canvas.width, canvas.height);
       gl.uniform2f(uRes, canvas.width, canvas.height);
     };
     resize();
     window.addEventListener("resize", resize);
 
+    // Performance optimization: Cache viewWidth and viewHeight on window resize rather than
+    // querying window.innerWidth and window.innerHeight on every high-frequency mousemove event,
+    // avoiding layout thrashing during mouse movement.
     const onMouse = (e: MouseEvent) => {
-      mouseRef.current.x = e.clientX / window.innerWidth;
-      mouseRef.current.y = 1 - e.clientY / window.innerHeight;
+      mouseRef.current.x = e.clientX / viewWidth;
+      mouseRef.current.y = 1 - e.clientY / viewHeight;
     };
-    window.addEventListener("mousemove", onMouse);
+    window.addEventListener("mousemove", onMouse, { passive: true });
 
     const start = performance.now();
     let raf: number;
