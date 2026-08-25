@@ -153,17 +153,37 @@ export function BottomLight({ progressRef }: { progressRef: React.MutableRefObje
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    let raf: number;
-    const tick = () => {
+    // Performance optimization: Instead of running an infinite requestAnimationFrame loop
+    // that continuously updates DOM style transforms even when the user is idle, we update
+    // the transform only when scroll or resize events occur, throttled via requestAnimationFrame.
+    let ticking = false;
+
+    const updatePosition = () => {
       if (ref.current) {
         const p = progressRef.current;
         // Sweep from -120% to 220% across full scroll
         ref.current.style.transform = `translateX(${p * 340 - 120}%)`;
       }
-      raf = requestAnimationFrame(tick);
+      ticking = false;
     };
-    tick();
-    return () => cancelAnimationFrame(raf);
+
+    const onScrollOrResize = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(updatePosition);
+        ticking = true;
+      }
+    };
+
+    // Initial position calculation
+    updatePosition();
+
+    window.addEventListener("scroll", onScrollOrResize, { passive: true });
+    window.addEventListener("resize", onScrollOrResize, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", onScrollOrResize);
+      window.removeEventListener("resize", onScrollOrResize);
+    };
   }, [progressRef]);
 
   return (
@@ -189,17 +209,37 @@ export function BottomLight({ progressRef }: { progressRef: React.MutableRefObje
 
 function ProgressFill({ progressRef }: { progressRef: React.MutableRefObject<number> }) {
   const ref = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    let raf: number;
-    const tick = () => {
+    // Performance optimization: Replace infinite requestAnimationFrame tick loop with passive scroll/resize listeners.
+    let ticking = false;
+
+    const updateFill = () => {
       if (ref.current) {
         ref.current.style.transform = `scaleX(${progressRef.current})`;
       }
-      raf = requestAnimationFrame(tick);
+      ticking = false;
     };
-    tick();
-    return () => cancelAnimationFrame(raf);
+
+    const onScrollOrResize = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(updateFill);
+        ticking = true;
+      }
+    };
+
+    // Initial fill calculation
+    updateFill();
+
+    window.addEventListener("scroll", onScrollOrResize, { passive: true });
+    window.addEventListener("resize", onScrollOrResize, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", onScrollOrResize);
+      window.removeEventListener("resize", onScrollOrResize);
+    };
   }, [progressRef]);
+
   return (
     <div className="h-[2px] bg-border/20">
       <div
