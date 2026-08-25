@@ -39,8 +39,16 @@ const nextConfig = {
             value: "none"
           },
           {
+            key: "Cross-Origin-Opener-Policy",
+            value: "same-origin"
+          },
+          {
+            key: "Cross-Origin-Resource-Policy",
+            value: "same-origin"
+          },
+          {
             key: "Content-Security-Policy",
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+            value: "default-src 'self'; font-src 'self' data:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
           }
         ]
       }
