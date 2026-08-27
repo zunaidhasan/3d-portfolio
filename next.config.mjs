@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  poweredByHeader: false,
   reactStrictMode: true,
   transpilePackages: ["three"],
   images: {
@@ -20,7 +21,7 @@ const nextConfig = {
           },
           {
             key: "X-Frame-Options",
-            value: "SAMEORIGIN"
+            value: "DENY"
           },
           {
             key: "X-Content-Type-Options",
