@@ -1,4 +1,4 @@
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
@@ -99,9 +99,10 @@ export function CodeConstellation({ progressRef, start, end }: ChapterProps) {
 export function DatabaseEngine({ progressRef, start, end }: ChapterProps) {
   const group = useRef<THREE.Group>(null);
   const queryGroup = useRef<THREE.Group>(null);
+  const instancedMeshRef = useRef<THREE.InstancedMesh>(null);
   const matsRef = useRef<THREE.MeshBasicMaterial[]>([]);
 
-  const rings = useMemo(() => Array.from({ length: 7 }, (_, i) => i), []);
+  const ringCount = 7;
   const queries = useMemo(
     () =>
       Array.from({ length: 10 }, () => ({
@@ -113,6 +114,21 @@ export function DatabaseEngine({ progressRef, start, end }: ChapterProps) {
       })),
     []
   );
+
+  // Performance optimization: Replace multiple individual <mesh> elements rendered in a loop
+  // with a single <instancedMesh> to reduce WebGL draw calls down to 1 and eliminate per-mesh allocations.
+  useEffect(() => {
+    if (!instancedMeshRef.current) return;
+    const dummy = new THREE.Object3D();
+    for (let i = 0; i < ringCount; i++) {
+      dummy.position.set(0, (i - 3) * 1.0, 0);
+      dummy.rotation.set(Math.PI / 2, 0, 0);
+      dummy.scale.set(1, 1, 1);
+      dummy.updateMatrix();
+      instancedMeshRef.current.setMatrixAt(i, dummy.matrix);
+    }
+    instancedMeshRef.current.instanceMatrix.needsUpdate = true;
+  }, [ringCount]);
 
   useFrame((state) => {
     if (!group.current) return;
@@ -144,13 +160,12 @@ export function DatabaseEngine({ progressRef, start, end }: ChapterProps) {
 
   return (
     <group ref={group}>
-      {/* Server rings */}
-      {rings.map((i) => (
-        <mesh key={i} position={[0, (i - 3) * 1.0, 0]} rotation={[Math.PI / 2, 0, 0]}>
-          <torusGeometry args={[2, 0.035, 8, 64]} />
-          <meshBasicMaterial ref={(m) => registerMat(m, 0.8)} color="#E8923C" transparent />
-        </mesh>
-      ))}
+      {/* Server rings - instanced to 1 WebGL draw call */}
+      <instancedMesh ref={instancedMeshRef} args={[undefined, undefined, ringCount]}>
+        <torusGeometry args={[2, 0.035, 8, 64]} />
+        <meshBasicMaterial ref={(m) => registerMat(m, 0.8)} color="#E8923C" transparent />
+      </instancedMesh>
+
       {/* Central core */}
       <mesh>
         <cylinderGeometry args={[0.4, 0.4, 7, 16]} />
