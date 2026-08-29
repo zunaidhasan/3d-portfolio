@@ -55,12 +55,16 @@ export function CodeConstellation({ progressRef, start, end }: ChapterProps) {
 
   useFrame((state) => {
     if (!group.current) return;
+    const op = chapterOpacity(progressRef.current, start, end);
+    const visible = op > 0.01;
+    group.current.visible = visible;
+    // Performance optimization: skip animation and material updates when off-screen
+    if (!visible) return;
+
     group.current.rotation.y = state.clock.elapsedTime * 0.03;
     group.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.08) * 0.08;
-    const op = chapterOpacity(progressRef.current, start, end);
     if (pMat.current) pMat.current.opacity = op;
     if (lMat.current) lMat.current.opacity = op * 0.22;
-    group.current.visible = op > 0.01;
   });
 
   return (
@@ -116,9 +120,13 @@ export function DatabaseEngine({ progressRef, start, end }: ChapterProps) {
 
   useFrame((state) => {
     if (!group.current) return;
-    group.current.rotation.y = state.clock.elapsedTime * 0.1;
     const op = chapterOpacity(progressRef.current, start, end);
-    group.current.visible = op > 0.01;
+    const visible = op > 0.01;
+    group.current.visible = visible;
+    // Performance optimization: skip array loops, rotations, and position calculations when off-screen
+    if (!visible) return;
+
+    group.current.rotation.y = state.clock.elapsedTime * 0.1;
     matsRef.current.forEach((m) => {
       if (m) m.opacity = m.userData.base * op;
     });
@@ -224,10 +232,14 @@ export function APIConstellation({ progressRef, start, end }: ChapterProps) {
 
   useFrame((state) => {
     if (!group.current) return;
+    const op = chapterOpacity(progressRef.current, start, end);
+    const visible = op > 0.01;
+    group.current.visible = visible;
+    // Performance optimization: skip array iterations and group rotations when off-screen
+    if (!visible) return;
+
     group.current.rotation.y = state.clock.elapsedTime * 0.04;
     group.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.06) * 0.05;
-    const op = chapterOpacity(progressRef.current, start, end);
-    group.current.visible = op > 0.01;
     matsRef.current.forEach((m) => {
       if (m) m.opacity = m.userData.base * op;
     });
@@ -294,13 +306,17 @@ export function ClosingOrbit({ progressRef, start, end }: ChapterProps) {
 
   useFrame((state) => {
     if (!group.current) return;
+    const op = chapterOpacity(progressRef.current, start, end);
+    const visible = op > 0.01;
+    group.current.visible = visible;
+    // Performance optimization: skip array iterations and matrix scale/rotation updates when off-screen
+    if (!visible) return;
+
     group.current.rotation.y = state.clock.elapsedTime * 0.015;
     if (orbRef.current) {
       const s = 1 + Math.sin(state.clock.elapsedTime * 0.5) * 0.04;
       orbRef.current.scale.setScalar(s);
     }
-    const op = chapterOpacity(progressRef.current, start, end);
-    group.current.visible = op > 0.01;
     matsRef.current.forEach((m) => {
       if (m) m.opacity = m.userData.base * op;
     });
