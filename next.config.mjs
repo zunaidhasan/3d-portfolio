@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  poweredByHeader: false, // Security: Disable X-Powered-By header to prevent tech stack fingerprinting
   transpilePackages: ["three"],
   images: {
     formats: ["image/avif", "image/webp"],
