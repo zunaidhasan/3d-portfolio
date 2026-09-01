@@ -98,8 +98,10 @@ export function CodeConstellation({ progressRef, start, end }: ChapterProps) {
 /* ========== Chapter 2: Database Engine Room ========== */
 export function DatabaseEngine({ progressRef, start, end }: ChapterProps) {
   const group = useRef<THREE.Group>(null);
-  const queryGroup = useRef<THREE.Group>(null);
+  const instancedQueriesRef = useRef<THREE.InstancedMesh>(null);
+  const queryMatRef = useRef<THREE.MeshBasicMaterial>(null);
   const matsRef = useRef<THREE.MeshBasicMaterial[]>([]);
+  const dummyMatrix = useMemo(() => new THREE.Matrix4(), []);
 
   const rings = useMemo(() => Array.from({ length: 7 }, (_, i) => i), []);
   const queries = useMemo(
@@ -122,16 +124,20 @@ export function DatabaseEngine({ progressRef, start, end }: ChapterProps) {
     matsRef.current.forEach((m) => {
       if (m) m.opacity = m.userData.base * op;
     });
-    if (queryGroup.current) {
-      queryGroup.current.children.forEach((line, i) => {
-        const q = queries[i];
-        if (!q) return;
+
+    // Performance optimization: Using instancedMesh reduces WebGL draw calls from 10 to 1
+    if (instancedQueriesRef.current) {
+      queries.forEach((q, i) => {
         const t = (state.clock.elapsedTime * q.speed + q.offset) % 4;
         const y = q.up ? t - 2 : 2 - t;
-        line.position.y = y;
-        const m = (line as THREE.Mesh).material as THREE.MeshBasicMaterial;
-        if (m) m.opacity = op * (1 - Math.abs(y) / 2.2) * 0.9;
+        dummyMatrix.setPosition(q.x, y, q.z);
+        instancedQueriesRef.current!.setMatrixAt(i, dummyMatrix);
       });
+      instancedQueriesRef.current.instanceMatrix.needsUpdate = true;
+
+      if (queryMatRef.current) {
+        queryMatRef.current.opacity = op * 0.7;
+      }
     }
   });
 
@@ -161,15 +167,11 @@ export function DatabaseEngine({ progressRef, start, end }: ChapterProps) {
         <sphereGeometry args={[0.6, 16, 16]} />
         <meshBasicMaterial ref={(m) => registerMat(m, 0.25)} color="#F5A956" transparent blending={THREE.AdditiveBlending} />
       </mesh>
-      {/* Query lines (cool blue) */}
-      <group ref={queryGroup}>
-        {queries.map((q, i) => (
-          <mesh key={i} position={[q.x, 0, q.z]}>
-            <boxGeometry args={[0.025, 0.35, 0.025]} />
-            <meshBasicMaterial color="#B8D4E3" transparent blending={THREE.AdditiveBlending} depthWrite={false} />
-          </mesh>
-        ))}
-      </group>
+      {/* Query lines (cool blue) - Instanced for 1 draw call */}
+      <instancedMesh ref={instancedQueriesRef} args={[undefined, undefined, queries.length]}>
+        <boxGeometry args={[0.025, 0.35, 0.025]} />
+        <meshBasicMaterial ref={queryMatRef} color="#B8D4E3" transparent blending={THREE.AdditiveBlending} depthWrite={false} />
+      </instancedMesh>
     </group>
   );
 }
