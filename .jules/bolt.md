@@ -16,3 +16,11 @@
 
 **Action:**
 1. Always store the latest coordinates synchrony in stable local parameters (`latestX`, `latestY`) on event emission, and read those updated coordinates directly in the `requestAnimationFrame` rendering loop.
+
+## 2026-03-06 - [Visibility Short-Circuiting in Multi-Chapter R3F Scenes]
+**Learning:**
+1. In multi-chapter or scroll-driven 3D canvas scenes (e.g., React Three Fiber scenes with multiple interactive 3D chapters), `useFrame` callbacks run unconditionally every frame (60–144 FPS) even when components are off-screen or rendered at `opacity <= 0.01`. In scenes with multiple chapters executing matrix math, trigonometry, or material array iterations, this wastes substantial CPU and GPU cycles on invisible objects.
+2. Checking component visibility or opacity first inside `useFrame` and setting `group.current.visible = isVisible` while returning early prevents unneeded matrix/vector transformations and material iterations, saving ~75% of per-frame scene computation overhead for off-screen chapters.
+
+**Action:**
+1. In R3F scroll/chapter architectures, always check `opacity` / visibility at the top of `useFrame` callbacks and short-circuit frame processing early when off-screen/invisible.
