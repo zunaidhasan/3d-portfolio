@@ -16,3 +16,11 @@
 
 **Action:**
 1. Always store the latest coordinates synchrony in stable local parameters (`latestX`, `latestY`) on event emission, and read those updated coordinates directly in the `requestAnimationFrame` rendering loop.
+
+## 2026-03-07 - [Eliminating Per-Frame Garbage Collection in R3F useFrame]
+**Learning:**
+1. Calling `COLOR.clone()` or `new THREE.Vector3()` inside React Three Fiber `useFrame` callbacks creates thousands of short-lived objects per second across scene components. In Three.js, methods like `color.lerp(targetColor, alpha)` or `vector.lerp(targetVector, alpha)` mutate `this` while only reading from `targetColor`/`targetVector`, making object cloning completely unnecessary.
+2. Replacing `.clone()` calls and inline vector instantiations with module-scoped static constants or reusable instances inside `useFrame` loops eliminates per-frame heap allocations and prevents micro-stutters caused by garbage collection sweeps during 60FPS animation sequences.
+
+**Action:**
+1. Never call `.clone()` or allocate new Three.js objects inside `useFrame` animation loops. Use module-scoped static instances or pass constant targets directly to vector/color math functions.
