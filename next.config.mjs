@@ -22,11 +22,15 @@ const nextConfig = {
           },
           {
             key: "X-Frame-Options",
-            value: "SAMEORIGIN"
+            value: "DENY"
           },
           {
             key: "X-Content-Type-Options",
             value: "nosniff"
+          },
+          {
+            key: "X-XSS-Protection",
+            value: "1; mode=block"
           },
           {
             key: "Referrer-Policy",
@@ -34,7 +38,7 @@ const nextConfig = {
           },
           {
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()"
+            value: "camera=(), microphone=(), geolocation=(), payment=(), autoplay=(), accelerometer=(), gyroscope=(), magnetometer=()"
           },
           {
             key: "X-Permitted-Cross-Domain-Policies",
