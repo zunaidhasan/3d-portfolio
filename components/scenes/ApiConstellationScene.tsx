@@ -155,20 +155,24 @@ const Node = React.memo(function Node({
     const isAnyActive = activeSkill || activeCategory;
     
     let targetScale = node.isAnchor ? 1.2 : 0.6;
-    let targetColor = AMBER.clone();
+    let targetColor = AMBER;
 
     if (isSkillActive) {
       targetScale = node.isAnchor ? 1.5 : 1.4;
-      targetColor = AMBER_BRIGHT.clone();
+      targetColor = AMBER_BRIGHT;
     } else if (isCategoryActive) {
       targetScale = node.isAnchor ? 1.6 : 1.1;
-      targetColor = AMBER_BRIGHT.clone();
+      targetColor = AMBER_BRIGHT;
     } else if (isAnyActive) {
       targetScale = node.isAnchor ? 0.8 : 0.3;
-      targetColor = DIM_AMBER.clone();
+      targetColor = DIM_AMBER;
     }
 
-    meshRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.1);
+    // Performance optimization: Avoid allocating a new THREE.Vector3 and THREE.Color on every frame.
+    // Using scalar lerp and passing static color targets eliminates ~226 object allocations per frame.
+    const currentScale = meshRef.current.scale.x;
+    const newScale = THREE.MathUtils.lerp(currentScale, targetScale, 0.1);
+    meshRef.current.scale.setScalar(newScale);
     matRef.current.color.lerp(targetColor, 0.1);
 
     // Update the label's DOM opacity directly without triggering virtual DOM diffs
@@ -260,16 +264,17 @@ const Edge = React.memo(function Edge({
     const isAnyActive = activeSkill || activeCategory;
 
     let targetOpacity = edge.type === "cross" ? 0.15 : 0.3;
-    let targetColor = edge.type === "cross" ? COOL.clone() : AMBER.clone();
+    let targetColor = edge.type === "cross" ? COOL : AMBER;
 
     if (isActiveEdge) {
       targetOpacity = 0.9;
-      targetColor = edge.type === "cross" ? COOL.clone() : AMBER_BRIGHT.clone();
+      targetColor = edge.type === "cross" ? COOL : AMBER_BRIGHT;
     } else if (isAnyActive) {
       targetOpacity = 0.05;
     }
 
     matRef.current.opacity = THREE.MathUtils.lerp(matRef.current.opacity, targetOpacity, 0.1);
+    // Performance optimization: Pass constant target color directly without calling .clone() on every frame
     matRef.current.color.lerp(targetColor, 0.1);
   });
 
