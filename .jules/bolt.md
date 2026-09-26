@@ -16,3 +16,12 @@
 
 **Action:**
 1. Always store the latest coordinates synchrony in stable local parameters (`latestX`, `latestY`) on event emission, and read those updated coordinates directly in the `requestAnimationFrame` rendering loop.
+
+## 2026-03-27 - [Zero Allocation R3F Frame Loop Optimization]
+**Learning:**
+1. In React Three Fiber `useFrame` callbacks, calling `.clone()` on `THREE.Color` objects or instantiating `new THREE.Vector3(...)` on every frame for multiple subcomponents (e.g., 73 nodes + 12 edges) creates thousands of throwaway heap allocations per second (~9,480 allocations/sec at 60 FPS).
+2. Since Three.js methods like `color.lerp(targetColor, alpha)` only mutate `color` and read `targetColor` without modifying `targetColor`, passing static `THREE.Color` constants directly into `.lerp()` avoids cloning entirely. Reusing a single module-scoped `Vector3` instance with `.set(x, y, z)` eliminates per-frame object instantiations and drops GC pressure in R3F loops to zero.
+
+**Action:**
+1. In R3F `useFrame` callbacks, never instantiate new Three.js math objects (`Vector3`, `Color`, `Matrix4`, etc.) or call `.clone()` on static color constants.
+2. Define static, module-scoped targets (e.g., `TARGET_SCALE_VEC`) and reuse them with `.set(...)` or pass static instances directly to read-only target parameters.
