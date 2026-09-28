@@ -16,3 +16,10 @@
 
 **Action:**
 1. Always store the latest coordinates synchrony in stable local parameters (`latestX`, `latestY`) on event emission, and read those updated coordinates directly in the `requestAnimationFrame` rendering loop.
+
+## 2026-03-31 - [Eliminating Per-Frame Object Allocations in R3F useFrame Loops]
+**Learning:**
+In React Three Fiber `useFrame` callbacks across multiple instance/node components (e.g. graph nodes and edges), instantiating `new THREE.Vector3()` or calling `.clone()` on `THREE.Color` objects inside high-frequency `useFrame` updates generates significant Garbage Collection (GC) pressure (~6,500+ allocations/sec at 60Hz across 70+ components). Since Three.js `.lerp()` methods mutate the calling instance towards a target without mutating the target itself, passing module-scoped static `THREE.Vector3` or `THREE.Color` instances directly avoids per-frame GC overhead while maintaining identical visual lerping behavior.
+
+**Action:**
+Always define static `THREE.Vector3` targets or `THREE.Color` constants outside R3F component scope, and reuse them directly in `useFrame` lerp calls instead of instantiating new vectors or cloning colors.

@@ -113,6 +113,9 @@ const COOL = new THREE.Color("#B8D4E3");
 const DIM_AMBER = new THREE.Color("#3a2410");
 const DIM_COOL = new THREE.Color("#1a2733");
 
+// Module-scoped reusable Vector3 instance to avoid allocating new objects inside useFrame callbacks
+const TARGET_VECTOR = new THREE.Vector3();
+
 interface NodeProps {
   node: GraphNode;
   activeSkillRef: React.MutableRefObject<string | null>;
@@ -155,20 +158,21 @@ const Node = React.memo(function Node({
     const isAnyActive = activeSkill || activeCategory;
     
     let targetScale = node.isAnchor ? 1.2 : 0.6;
-    let targetColor = AMBER.clone();
+    let targetColor = AMBER;
 
     if (isSkillActive) {
       targetScale = node.isAnchor ? 1.5 : 1.4;
-      targetColor = AMBER_BRIGHT.clone();
+      targetColor = AMBER_BRIGHT;
     } else if (isCategoryActive) {
       targetScale = node.isAnchor ? 1.6 : 1.1;
-      targetColor = AMBER_BRIGHT.clone();
+      targetColor = AMBER_BRIGHT;
     } else if (isAnyActive) {
       targetScale = node.isAnchor ? 0.8 : 0.3;
-      targetColor = DIM_AMBER.clone();
+      targetColor = DIM_AMBER;
     }
 
-    meshRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.1);
+    // Performance optimization: reuse TARGET_VECTOR and static Color instances to eliminate per-frame object creation & GC pressure
+    meshRef.current.scale.lerp(TARGET_VECTOR.set(targetScale, targetScale, targetScale), 0.1);
     matRef.current.color.lerp(targetColor, 0.1);
 
     // Update the label's DOM opacity directly without triggering virtual DOM diffs
@@ -260,11 +264,11 @@ const Edge = React.memo(function Edge({
     const isAnyActive = activeSkill || activeCategory;
 
     let targetOpacity = edge.type === "cross" ? 0.15 : 0.3;
-    let targetColor = edge.type === "cross" ? COOL.clone() : AMBER.clone();
+    let targetColor = edge.type === "cross" ? COOL : AMBER;
 
     if (isActiveEdge) {
       targetOpacity = 0.9;
-      targetColor = edge.type === "cross" ? COOL.clone() : AMBER_BRIGHT.clone();
+      targetColor = edge.type === "cross" ? COOL : AMBER_BRIGHT;
     } else if (isAnyActive) {
       targetOpacity = 0.05;
     }
@@ -293,7 +297,7 @@ function CameraRig({ reducedMotion }: { reducedMotion: boolean }) {
   
   useFrame((state) => {
     if (reducedMotion) {
-      camera.position.lerp(new THREE.Vector3(0, 0, 12), 0.05);
+      camera.position.lerp(TARGET_VECTOR.set(0, 0, 12), 0.05);
       camera.lookAt(0, 0, 0);
       return;
     }
