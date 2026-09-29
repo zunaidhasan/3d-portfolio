@@ -16,3 +16,9 @@
 
 **Action:**
 1. Always store the latest coordinates synchrony in stable local parameters (`latestX`, `latestY`) on event emission, and read those updated coordinates directly in the `requestAnimationFrame` rendering loop.
+
+## 2026-03-31 - [Zero-Allocation Three.js Render Loops in R3F]
+**Learning:**
+In Three.js, `color.lerp(targetColor, alpha)` mutates the calling `Color` instance while treating `targetColor` as read-only. Calling `.clone()` or `new THREE.Vector3()` inside `useFrame` loops across multiple interactive scene subcomponents (e.g., 29 nodes + 36 edges running at 60 FPS = ~5,640 allocations/sec) causes significant Garbage Collection thrashing and micro-stutters.
+**Action:**
+Always pass static, module-scoped `THREE.Color` and `THREE.Vector3` instances directly to `.lerp()` and vector operations in `useFrame` callbacks instead of creating fresh allocations per frame.
