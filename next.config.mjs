@@ -3,6 +3,7 @@ const nextConfig = {
   // Security: Disable X-Powered-By header to prevent framework fingerprinting and information disclosure
   poweredByHeader: false,
   reactStrictMode: true,
+  poweredByHeader: false,
   transpilePackages: ["three"],
   images: {
     formats: ["image/avif", "image/webp"],
@@ -34,7 +35,7 @@ const nextConfig = {
           },
           {
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()"
+            value: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), display-capture=()"
           },
           {
             key: "X-Permitted-Cross-Domain-Policies",
