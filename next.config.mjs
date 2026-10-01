@@ -3,6 +3,7 @@ const nextConfig = {
   // Security: Disable X-Powered-By header to prevent framework fingerprinting and information disclosure
   poweredByHeader: false,
   reactStrictMode: true,
+  poweredByHeader: false, // Security: Disable X-Powered-By header to prevent tech stack fingerprinting
   transpilePackages: ["three"],
   images: {
     formats: ["image/avif", "image/webp"],
