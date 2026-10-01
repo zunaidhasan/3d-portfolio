@@ -101,8 +101,12 @@ export function CodeConstellation({ progressRef, start, end }: ChapterProps) {
 /* ========== Chapter 2: Database Engine Room ========== */
 export function DatabaseEngine({ progressRef, start, end }: ChapterProps) {
   const group = useRef<THREE.Group>(null);
-  const queryGroup = useRef<THREE.Group>(null);
+  const instancedRef = useRef<THREE.InstancedMesh>(null);
   const matsRef = useRef<THREE.MeshBasicMaterial[]>([]);
+
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const coolColor = useMemo(() => new THREE.Color("#B8D4E3"), []);
+  const tempColor = useMemo(() => new THREE.Color(), []);
 
   const rings = useMemo(() => Array.from({ length: 7 }, (_, i) => i), []);
   const queries = useMemo(
@@ -128,16 +132,25 @@ export function DatabaseEngine({ progressRef, start, end }: ChapterProps) {
     matsRef.current.forEach((m) => {
       if (m) m.opacity = m.userData.base * op;
     });
-    if (queryGroup.current) {
-      queryGroup.current.children.forEach((line, i) => {
-        const q = queries[i];
-        if (!q) return;
+
+    // Performance optimization: Batch query line particles into a single instancedMesh
+    // reducing 10 separate draw calls down to 1 draw call and eliminating mesh node allocations.
+    if (instancedRef.current) {
+      queries.forEach((q, i) => {
         const t = (state.clock.elapsedTime * q.speed + q.offset) % 4;
         const y = q.up ? t - 2 : 2 - t;
-        line.position.y = y;
-        const m = (line as THREE.Mesh).material as THREE.MeshBasicMaterial;
-        if (m) m.opacity = op * (1 - Math.abs(y) / 2.2) * 0.9;
+        dummy.position.set(q.x, y, q.z);
+        dummy.updateMatrix();
+        instancedRef.current!.setMatrixAt(i, dummy.matrix);
+
+        const alpha = Math.max(0, op * (1 - Math.abs(y) / 2.2) * 0.9);
+        tempColor.copy(coolColor).multiplyScalar(alpha);
+        instancedRef.current!.setColorAt(i, tempColor);
       });
+      instancedRef.current.instanceMatrix.needsUpdate = true;
+      if (instancedRef.current.instanceColor) {
+        instancedRef.current.instanceColor.needsUpdate = true;
+      }
     }
   });
 
@@ -167,15 +180,11 @@ export function DatabaseEngine({ progressRef, start, end }: ChapterProps) {
         <sphereGeometry args={[0.6, 16, 16]} />
         <meshBasicMaterial ref={(m) => registerMat(m, 0.25)} color="#F5A956" transparent blending={THREE.AdditiveBlending} />
       </mesh>
-      {/* Query lines (cool blue) */}
-      <group ref={queryGroup}>
-        {queries.map((q, i) => (
-          <mesh key={i} position={[q.x, 0, q.z]}>
-            <boxGeometry args={[0.025, 0.35, 0.025]} />
-            <meshBasicMaterial color="#B8D4E3" transparent blending={THREE.AdditiveBlending} depthWrite={false} />
-          </mesh>
-        ))}
-      </group>
+      {/* Instanced Query lines (cool blue) */}
+      <instancedMesh ref={instancedRef} args={[undefined, undefined, 10]}>
+        <boxGeometry args={[0.025, 0.35, 0.025]} />
+        <meshBasicMaterial transparent blending={THREE.AdditiveBlending} depthWrite={false} />
+      </instancedMesh>
     </group>
   );
 }
