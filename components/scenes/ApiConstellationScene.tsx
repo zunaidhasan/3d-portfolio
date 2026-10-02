@@ -113,6 +113,10 @@ const COOL = new THREE.Color("#B8D4E3");
 const DIM_AMBER = new THREE.Color("#3a2410");
 const DIM_COOL = new THREE.Color("#1a2733");
 
+// Performance optimization: Module-scoped reusable Vector3 instance to eliminate
+// per-frame allocations in useFrame loops across all node components.
+const targetScaleVec = new THREE.Vector3();
+
 interface NodeProps {
   node: GraphNode;
   activeSkillRef: React.MutableRefObject<string | null>;
@@ -155,20 +159,22 @@ const Node = React.memo(function Node({
     const isAnyActive = activeSkill || activeCategory;
     
     let targetScale = node.isAnchor ? 1.2 : 0.6;
-    let targetColor = AMBER.clone();
+    let targetColor = AMBER;
 
     if (isSkillActive) {
       targetScale = node.isAnchor ? 1.5 : 1.4;
-      targetColor = AMBER_BRIGHT.clone();
+      targetColor = AMBER_BRIGHT;
     } else if (isCategoryActive) {
       targetScale = node.isAnchor ? 1.6 : 1.1;
-      targetColor = AMBER_BRIGHT.clone();
+      targetColor = AMBER_BRIGHT;
     } else if (isAnyActive) {
       targetScale = node.isAnchor ? 0.8 : 0.3;
-      targetColor = DIM_AMBER.clone();
+      targetColor = DIM_AMBER;
     }
 
-    meshRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.1);
+    // Performance optimization: Reuse static targetScaleVec and pass constant targetColor directly
+    // to avoid thousands of per-second Vector3 and Color object allocations triggering GC pressure.
+    meshRef.current.scale.lerp(targetScaleVec.set(targetScale, targetScale, targetScale), 0.1);
     matRef.current.color.lerp(targetColor, 0.1);
 
     // Update the label's DOM opacity directly without triggering virtual DOM diffs
@@ -260,15 +266,16 @@ const Edge = React.memo(function Edge({
     const isAnyActive = activeSkill || activeCategory;
 
     let targetOpacity = edge.type === "cross" ? 0.15 : 0.3;
-    let targetColor = edge.type === "cross" ? COOL.clone() : AMBER.clone();
+    let targetColor = edge.type === "cross" ? COOL : AMBER;
 
     if (isActiveEdge) {
       targetOpacity = 0.9;
-      targetColor = edge.type === "cross" ? COOL.clone() : AMBER_BRIGHT.clone();
+      targetColor = edge.type === "cross" ? COOL : AMBER_BRIGHT;
     } else if (isAnyActive) {
       targetOpacity = 0.05;
     }
 
+    // Performance optimization: Pass constant targetColor directly into lerp without .clone()
     matRef.current.opacity = THREE.MathUtils.lerp(matRef.current.opacity, targetOpacity, 0.1);
     matRef.current.color.lerp(targetColor, 0.1);
   });
