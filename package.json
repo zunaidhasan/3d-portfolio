@@ -39,13 +39,25 @@
     "glob": "^10.4.5",
     "three-stdlib": {
       "fflate": "^0.8.3"
+    },
+    "minimatch@3": {
+      "brace-expansion": "^1.1.21"
+    },
+    "minimatch@9": {
+      "brace-expansion": "^2.1.7"
+    },
+    "minimatch@10": {
+      "brace-expansion": "^5.0.12"
     }
   },
   "pnpm": {
     "overrides": {
       "postcss": "^8.5.26",
       "glob": "^10.4.5",
-      "three-stdlib>fflate": "^0.8.3"
+      "three-stdlib>fflate": "^0.8.3",
+      "minimatch@3>brace-expansion": "^1.1.21",
+      "minimatch@9>brace-expansion": "^2.1.7",
+      "minimatch@10>brace-expansion": "^5.0.12"
     }
   }
 }
