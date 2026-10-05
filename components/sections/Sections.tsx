@@ -3,7 +3,7 @@ import { useState } from "react";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import { RevealText, SectionLabel, TiltCard } from "@/components/ui/Primitives";
-import { cn } from "@/lib/utils";
+import { cn, sanitizeUrl } from "@/lib/utils";
 
 // ---------- ABOUT ----------
 const quickStats = [
@@ -262,8 +262,9 @@ export function Projects() {
               </div>
 
               <div className="mt-8 flex items-center gap-4">
-                <a href={project.live} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-amber hover:text-amber-bright transition-colors">View Live →</a>
-                <a href={project.git} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-text-muted hover:text-text transition-colors">GitHub</a>
+                {/* Security: sanitizeUrl prevents XSS via unsafe protocols (javascript:, data:) in link targets */}
+                <a href={sanitizeUrl(project.live)} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-amber hover:text-amber-bright transition-colors">View Live →</a>
+                <a href={sanitizeUrl(project.git)} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-text-muted hover:text-text transition-colors">GitHub</a>
               </div>
             </TiltCard>
           ))}
